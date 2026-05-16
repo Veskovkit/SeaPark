@@ -7,8 +7,6 @@ import {
   Marker,
 } from '@react-google-maps/api';
 import { zones, getZonesBounds, getPolygonRing } from '../lib/zones';
-import ReportPins from './ReportPins';
-
 const MAP_CENTER = { lat: 45.505, lng: 13.575 };
 const MAP_ZOOM = 12;
 
@@ -79,10 +77,8 @@ export default function HelmMap({
   position,
   cog,
   sog,
-  reports,
   onZoneClick,
   onMapRightClick,
-  onReportClick,
 }) {
   const [wakePath, setWakePath] = useState([]);
 
@@ -178,7 +174,6 @@ export default function HelmMap({
           />
         )}
 
-        <ReportPins reports={reports} onReportClick={onReportClick} />
       </GoogleMap>
     </LoadScript>
   );

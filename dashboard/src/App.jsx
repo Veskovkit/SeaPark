@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { Toaster } from 'react-hot-toast';
 import InstrumentBar from './components/InstrumentBar';
 import AlertBanner from './components/AlertBanner';
 import SidePanel from './components/SidePanel';
@@ -18,7 +17,7 @@ export default function App() {
   const { reports } = useReports();
 
   const [selectedZone, setSelectedZone] = useState(null);
-  const [reportLocation, setReportLocation] = useState(null);
+  const [reportOpen, setReportOpen] = useState(false);
   const prevZoneType = useRef(null);
   const [zoneCheckCount, setZoneCheckCount] = useState(0);
 
@@ -61,7 +60,7 @@ export default function App() {
       {showAlert && (
         <AlertBanner
           zone={activeZone.properties}
-          onReport={() => position && setReportLocation({ ...position })}
+          onReport={() => position && setReportOpen(true)}
           onViewSpecies={() => setSelectedZone(activeZone)}
         />
       )}
@@ -80,9 +79,8 @@ export default function App() {
             position={position}
             cog={cog}
             sog={sog}
-            reports={reports}
             onZoneClick={setSelectedZone}
-            onMapRightClick={setReportLocation}
+            onMapRightClick={() => position && setReportOpen(true)}
           />
         </div>
 
@@ -95,24 +93,13 @@ export default function App() {
         )}
       </div>
 
-      {reportLocation && (
+      {reportOpen && position && (
         <ReportModal
-          location={reportLocation}
+          position={position}
           activeZone={activeZone}
-          onClose={() => setReportLocation(null)}
+          onClose={() => setReportOpen(false)}
         />
       )}
-
-      <Toaster
-        position="bottom-right"
-        toastOptions={{
-          style: {
-            background: '#0a1e35',
-            color: '#e2f4ff',
-            border: '1px solid rgba(0, 212, 255, 0.2)',
-          },
-        }}
-      />
     </div>
   );
 }

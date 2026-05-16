@@ -1,17 +1,12 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { getSpecies } from '../lib/species';
 import { useNow } from '../hooks/useNow';
 
-const VIOLATION_LABELS = {
-  anchoring: 'Anchoring violation',
-  'Anchoring in protected zone': 'Anchoring violation',
-  speeding: 'Speeding',
-  'Speeding in restricted zone': 'Speeding',
-  illegal_fishing: 'Illegal fishing',
-  'Illegal fishing': 'Illegal fishing',
-  waste_dumping: 'Waste dumping',
-  'Waste dumping': 'Waste dumping',
+const VIOLATION_ICONS = {
+  'Anchoring in protected zone': '⚓',
+  'Speeding in restricted zone': '💨',
+  'Illegal fishing': '🎣',
+  Other: '📋',
 };
 
 function formatTimeAgo(ts) {
@@ -90,7 +85,6 @@ export default function SidePanel({
           <li>🟠 Restricted — slow / no anchor</li>
           <li>🟢 Safe mooring</li>
           <li>⛵ Your vessel (via Signal K)</li>
-          <li>📍 Violation report</li>
         </ul>
       </section>
 
@@ -101,29 +95,15 @@ export default function SidePanel({
         ) : (
           <ul className="report-feed">
             {feed.map((r) => {
-              const sev = r.geminiAnalysis?.severity ?? 'medium';
-              const sevIcon = sev === 'high' ? '🔴' : sev === 'low' ? '🟡' : '🟠';
-              const label =
-                VIOLATION_LABELS[r.violationType] ??
-                r.geminiAnalysis?.autoTag ??
-                r.violationType ??
-                'Report';
-              const speciesId = r.geminiAnalysis?.speciesAtRisk?.[0];
-              const species = speciesId ? getSpecies(speciesId) : null;
-
+              const icon = VIOLATION_ICONS[r.violationType] ?? '📋';
               return (
                 <li key={r.id} className="report-feed__item panel-raised">
                   <div className="report-feed__head">
-                    {sevIcon} {sev.toUpperCase()} · {label}
+                    {icon} {r.violationType ?? 'Report'}
                   </div>
                   <div className="report-feed__meta">
                     {r.zoneName ?? 'Open water'} · {formatTimeAgo(r.timestamp)}
                   </div>
-                  {species && (
-                    <p className="report-feed__species">
-                      {species.emoji} {species.nickname} at risk
-                    </p>
-                  )}
                 </li>
               );
             })}

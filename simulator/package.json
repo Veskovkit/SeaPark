@@ -1,0 +1,11 @@
+{
+  "name": "seapark-simulator",
+  "version": "1.0.0",
+  "description": "NMEA 0183 GPS simulator for SeaPark demo",
+  "main": "nmea-simulator.js",
+  "scripts": {
+    "start": "node nmea-simulator.js",
+    "demo": "node nmea-simulator.js --route routes/piran-demo.json --speed 2"
+  },
+  "dependencies": {}
+}

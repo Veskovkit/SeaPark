@@ -1,65 +1,65 @@
 [
-    {
-        "lng":  13.7301,
-        "name":  "Marina Koper departure",
-        "durationSeconds":  30,
-        "note":  "Safe zone — open water",
-        "lat":  45.5483
-    },
-    {
-        "lng":  13.62,
-        "name":  "Gulf crossing",
-        "durationSeconds":  45,
-        "note":  "Open water transit",
-        "lat":  45.528
-    },
-    {
-        "lng":  13.5721,
-        "name":  "Strunjan approaches",
-        "durationSeconds":  30,
-        "note":  "Entering restricted zone",
-        "lat":  45.5312
-    },
-    {
-        "lng":  13.558,
-        "name":  "Strunjan coast",
-        "durationSeconds":  35,
-        "note":  "Restricted zone — no anchoring",
-        "lat":  45.529
-    },
-    {
-        "lng":  13.549,
-        "name":  "Piran approaches",
-        "durationSeconds":  25,
-        "note":  "Approaching danger zone",
-        "lat":  45.527
-    },
-    {
-        "lng":  13.5462,
-        "name":  "Piran Oasis platform",
-        "durationSeconds":  40,
-        "note":  "DANGER ZONE — artificial reef",
-        "lat":  45.5241
-    },
-    {
-        "lng":  13.544,
-        "name":  "Posidonia beds",
-        "durationSeconds":  35,
-        "note":  "DANGER ZONE — seagrass",
-        "lat":  45.522
-    },
-    {
-        "lng":  13.55,
-        "name":  "Retreating north",
-        "durationSeconds":  25,
-        "note":  "Leaving danger zone",
-        "lat":  45.526
-    },
-    {
-        "lng":  13.5678,
-        "name":  "Piran marina",
-        "durationSeconds":  30,
-        "note":  "Safe mooring area",
-        "lat":  45.5278
-    }
+  {
+    "name": "Marina Koper departure",
+    "lat": 45.5483,
+    "lng": 13.7301,
+    "durationSeconds": 30,
+    "note": "Safe zone - open water"
+  },
+  {
+    "name": "Gulf crossing",
+    "lat": 45.538,
+    "lng": 13.65,
+    "durationSeconds": 40,
+    "note": "Open water transit"
+  },
+  {
+    "name": "Debeli Rtic approaches",
+    "lat": 45.586,
+    "lng": 13.642,
+    "durationSeconds": 25,
+    "note": "Approaching restricted zone"
+  },
+  {
+    "name": "Strunjan bay",
+    "lat": 45.528,
+    "lng": 13.612,
+    "durationSeconds": 35,
+    "note": "Entering Strunjan Landscape Park marine zone"
+  },
+  {
+    "name": "Strunjan coast",
+    "lat": 45.534,
+    "lng": 13.618,
+    "durationSeconds": 30,
+    "note": "Restricted zone - no anchoring"
+  },
+  {
+    "name": "Transit to Piran Bay",
+    "lat": 45.505,
+    "lng": 13.595,
+    "durationSeconds": 30,
+    "note": "Open water"
+  },
+  {
+    "name": "Morska oaza Piran",
+    "lat": 45.4882,
+    "lng": 13.5836,
+    "durationSeconds": 45,
+    "note": "DANGER ZONE - YouSea artificial reef"
+  },
+  {
+    "name": "Posidonia meadows",
+    "lat": 45.502,
+    "lng": 13.562,
+    "durationSeconds": 35,
+    "note": "DANGER ZONE - seagrass beds"
+  },
+  {
+    "name": "Piran marina",
+    "lat": 45.5278,
+    "lng": 13.5678,
+    "durationSeconds": 30,
+    "note": "Safe mooring area"
+  }
 ]

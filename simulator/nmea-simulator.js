@@ -7,51 +7,14 @@ const net = require('net');
 
 // Bounding boxes mirror dashboard/src/lib/zones.js polygon extents (lng/lat min-max).
 const ZONES = [
-  {
-    id: 'piran-oasis',
-    name: 'Piran Oasis Artificial Reef',
-    type: 'danger',
-    minLng: 13.5440,
-    minLat: 45.5220,
-    maxLng: 13.5490,
-    maxLat: 45.5260,
-  },
-  {
-    id: 'posidonia-beds',
-    name: 'Posidonia Oceanica Meadows',
-    type: 'danger',
-    minLng: 13.5350,
-    minLat: 45.5200,
-    maxLng: 13.5440,
-    maxLat: 45.5240,
-  },
-  {
-    id: 'strunjan-reserve',
-    name: 'Strunjan Nature Reserve',
-    type: 'restricted',
-    minLng: 13.5500,
-    minLat: 45.5270,
-    maxLng: 13.5750,
-    maxLat: 45.5340,
-  },
-  {
-    id: 'koper-marina',
-    name: 'Koper Marina',
-    type: 'safe',
-    minLng: 13.7250,
-    minLat: 45.5450,
-    maxLng: 13.7380,
-    maxLat: 45.5530,
-  },
-  {
-    id: 'piran-marina',
-    name: 'Piran Marina',
-    type: 'safe',
-    minLng: 13.5640,
-    minLat: 45.5260,
-    maxLng: 13.5730,
-    maxLat: 45.5310,
-  },
+  { id: 'piran-oasis', name: 'Morska oaza Piran', type: 'danger', minLng: 13.578, minLat: 45.484, maxLng: 13.589, maxLat: 45.492 },
+  { id: 'cladocora', name: 'Cladocora structure', type: 'danger', minLng: 13.581, minLat: 45.486, maxLng: 13.589, maxLat: 45.492 },
+  { id: 'posidonia-beds', name: 'Posidonia meadows', type: 'danger', minLng: 13.548, minLat: 45.492, maxLng: 13.578, maxLat: 45.512 },
+  { id: 'strunjan-reserve', name: 'Krajinski park Strunjan', type: 'restricted', minLng: 13.59, minLat: 45.512, maxLng: 13.626, maxLat: 45.542 },
+  { id: 'debeli-rtic', name: 'Debeli rtic', type: 'restricted', minLng: 13.632, minLat: 45.576, maxLng: 13.656, maxLat: 45.596 },
+  { id: 'croatia-mpa-gulf', name: 'Croatian MPA Gulf', type: 'restricted', minLng: 13.488, minLat: 45.458, maxLng: 13.538, maxLat: 45.488 },
+  { id: 'koper-marina', name: 'Koper Marina', type: 'safe', minLng: 13.724, minLat: 45.546, maxLng: 13.738, maxLat: 45.554 },
+  { id: 'piran-marina', name: 'Piran Marina', type: 'safe', minLng: 13.564, minLat: 45.526, maxLng: 13.574, maxLat: 45.532 },
 ];
 
 const TYPE_PRIORITY = { danger: 0, restricted: 1, safe: 2 };

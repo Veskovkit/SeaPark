@@ -431,11 +431,33 @@ body {
   font-size: 1.5rem;
 }
 
+.species-card__sl {
+  display: block;
+  font-size: 11px;
+  color: var(--helm-cyan-dim);
+}
+
 .species-card__sci {
   display: block;
   font-size: 11px;
   color: var(--helm-muted);
   font-style: italic;
+}
+
+.species-card__link {
+  display: inline-block;
+  margin-top: 0.35rem;
+  font-size: 11px;
+  color: var(--helm-cyan);
+  text-decoration: none;
+}
+
+.species-card__link:hover {
+  text-decoration: underline;
+}
+
+.zone-panel__meta a {
+  color: var(--helm-cyan);
 }
 
 .species-card__status {

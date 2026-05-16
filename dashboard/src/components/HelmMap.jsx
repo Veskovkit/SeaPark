@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   GoogleMap,
   LoadScript,
@@ -6,10 +6,10 @@ import {
   Polyline,
   Marker,
 } from '@react-google-maps/api';
-import { zones } from '../lib/zones';
+import { zones, getZonesBounds } from '../lib/zones';
 import ReportPins from './ReportPins';
 
-const MAP_CENTER = { lat: 45.53, lng: 13.57 };
+const MAP_CENTER = { lat: 45.505, lng: 13.575 };
 const MAP_ZOOM = 12;
 
 const mapOptions = {
@@ -36,23 +36,25 @@ const mapOptions = {
   fullscreenControl: false,
 };
 
+const ZONE_Z_INDEX = { danger: 3, restricted: 2, safe: 1 };
+
 const ZONE_STYLES = {
   danger: {
-    fill: '#ef4444',
-    fillOpacity: 0.25,
-    stroke: '#dc2626',
+    fillColor: '#ef4444',
+    fillOpacity: 0.32,
+    strokeColor: '#ffffff',
     strokeWeight: 2,
   },
   restricted: {
-    fill: '#f97316',
-    fillOpacity: 0.2,
-    stroke: '#ea580c',
+    fillColor: '#f97316',
+    fillOpacity: 0.26,
+    strokeColor: '#ea580c',
     strokeWeight: 2,
   },
   safe: {
-    fill: '#22c55e',
-    fillOpacity: 0.15,
-    stroke: '#16a34a',
+    fillColor: '#22c55e',
+    fillOpacity: 0.18,
+    strokeColor: '#16a34a',
     strokeWeight: 2,
   },
 };
@@ -83,6 +85,15 @@ export default function HelmMap({
   onReportClick,
 }) {
   const [wakePath, setWakePath] = useState([]);
+
+  const zoneBounds = useMemo(() => getZonesBounds(), []);
+
+  const handleMapLoad = useCallback(
+    (mapInstance) => {
+      mapInstance.fitBounds(zoneBounds, { top: 56, right: 24, bottom: 24, left: 24 });
+    },
+    [zoneBounds],
+  );
 
   /* eslint-disable react-hooks/set-state-in-effect -- wake trail follows position stream */
   useEffect(() => {
@@ -122,6 +133,7 @@ export default function HelmMap({
         center={position ?? MAP_CENTER}
         zoom={MAP_ZOOM}
         options={mapOptions}
+        onLoad={handleMapLoad}
         onRightClick={handleRightClick}
       >
         {zones.features.map((feature) => {
@@ -138,6 +150,7 @@ export default function HelmMap({
               paths={paths}
               options={{
                 ...style,
+                zIndex: ZONE_Z_INDEX[type] ?? 1,
                 clickable: true,
               }}
               onClick={() => onZoneClick?.(feature)}

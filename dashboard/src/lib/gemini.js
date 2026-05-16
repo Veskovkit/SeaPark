@@ -16,7 +16,7 @@ Respond ONLY with valid JSON, no markdown, no explanation:
   "detected": "one sentence: what you see in the photo",
   "hasBoat": true or false,
   "violationType": "anchoring_violation | speeding | illegal_fishing | waste_dumping | unclear",
-  "speciesAtRisk": ["from: posidonia, loggerhead-turtle, fan-mussel, dusky-grouper, common-dolphin, date-mussel, seahorse, spider-crab"],
+  "speciesAtRisk": ["from: posidonia, loggerhead-turtle, fan-mussel, dusky-grouper, common-dolphin, date-mussel, seahorse, spider-crab, cladocora, mytilus"],
   "severity": "high | medium | low",
   "confidence": "high | medium | low",
   "recommendation": "one sentence action for authorities",

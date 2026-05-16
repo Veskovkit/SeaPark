@@ -38,6 +38,18 @@ export default function ZoneInfoPanel({ zone, reports, onClose }) {
           {props.established && (
             <p className="zone-panel__meta">Established {props.established}</p>
           )}
+          {props.source && (
+            <p className="zone-panel__meta">
+              Data: {props.sourceUrl ? (
+                <a href={props.sourceUrl} target="_blank" rel="noopener noreferrer">
+                  {props.source}
+                </a>
+              ) : (
+                props.source
+              )}
+              {props.navigatorSiteId && ` · ${props.navigatorSiteId}`}
+            </p>
+          )}
         </section>
 
         <section className="zone-panel__section">
@@ -55,6 +67,9 @@ export default function ZoneInfoPanel({ zone, reports, onClose }) {
                     <span className="species-card__emoji">{s.emoji}</span>
                     <div>
                       <strong>{s.nickname}</strong>
+                      {s.slovenianName && (
+                        <span className="species-card__sl">{s.slovenianName}</span>
+                      )}
                       <em className="species-card__sci">{s.scientificName}</em>
                     </div>
                   </div>
@@ -65,6 +80,16 @@ export default function ZoneInfoPanel({ zone, reports, onClose }) {
                     {s.status}
                   </span>
                   <p className="species-card__fact">{s.fact}</p>
+                  {s.sourceUrl && (
+                    <a
+                      className="species-card__link"
+                      href={s.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Learn more
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>

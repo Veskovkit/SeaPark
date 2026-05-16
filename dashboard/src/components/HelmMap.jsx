@@ -6,7 +6,7 @@ import {
   Polyline,
   Marker,
 } from '@react-google-maps/api';
-import { zones, getZonesBounds } from '../lib/zones';
+import { zones, getZonesBounds, getPolygonRing } from '../lib/zones';
 import ReportPins from './ReportPins';
 
 const MAP_CENTER = { lat: 45.505, lng: 13.575 };
@@ -139,7 +139,7 @@ export default function HelmMap({
         {zones.features.map((feature) => {
           const type = feature.properties.type;
           const style = ZONE_STYLES[type] ?? ZONE_STYLES.safe;
-          const paths = feature.geometry.coordinates[0].map(([lng, lat]) => ({
+          const paths = getPolygonRing(feature).map(([lng, lat]) => ({
             lat,
             lng,
           }));

@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
-const visionModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+const visionModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
 /**
  * Analyze a violation photo with Gemini Vision.

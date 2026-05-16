@@ -1,45 +1,66 @@
 [
   {
     "name": "Marina Koper departure",
-    "lat": 45.5483,
-    "lng": 13.7301,
-    "durationSeconds": 30,
-    "note": "Safe zone - open water"
-  },
-  {
-    "name": "Gulf crossing",
-    "lat": 45.538,
-    "lng": 13.65,
-    "durationSeconds": 40,
-    "note": "Open water transit"
-  },
-  {
-    "name": "Debeli Rtic approaches",
-    "lat": 45.586,
-    "lng": 13.642,
+    "lat": 45.55022,
+    "lng": 13.72782,
     "durationSeconds": 25,
-    "note": "Approaching restricted zone"
+    "note": "Safe zone - Koper marina basin"
   },
   {
-    "name": "Strunjan bay",
-    "lat": 45.528,
-    "lng": 13.612,
+    "name": "Koper Bay channel",
+    "lat": 45.548,
+    "lng": 13.73,
+    "durationSeconds": 30,
+    "note": "Open water - exiting Koper Bay"
+  },
+  {
+    "name": "Off Zusterna",
+    "lat": 45.542,
+    "lng": 13.708,
+    "durationSeconds": 25,
+    "note": "Coastal transit"
+  },
+  {
+    "name": "Off Ankaran",
+    "lat": 45.562,
+    "lng": 13.678,
     "durationSeconds": 35,
-    "note": "Entering Strunjan Landscape Park marine zone"
+    "note": "Offshore - Debeli rtic approaches"
   },
   {
-    "name": "Strunjan coast",
-    "lat": 45.534,
-    "lng": 13.618,
+    "name": "Off Izola",
+    "lat": 45.538,
+    "lng": 13.638,
     "durationSeconds": 30,
-    "note": "Restricted zone - no anchoring"
+    "note": "Coastal transit"
   },
   {
-    "name": "Transit to Piran Bay",
-    "lat": 45.505,
-    "lng": 13.595,
+    "name": "Strunjan Bay entrance",
+    "lat": 45.512,
+    "lng": 13.606,
+    "durationSeconds": 35,
+    "note": "Entering Strunjan marine zone"
+  },
+  {
+    "name": "Off Strunjan",
+    "lat": 45.51,
+    "lng": 13.608,
     "durationSeconds": 30,
-    "note": "Open water"
+    "note": "Restricted zone - along coast"
+  },
+  {
+    "name": "Off Portoroz",
+    "lat": 45.506,
+    "lng": 13.598,
+    "durationSeconds": 30,
+    "note": "Coastal transit toward Piran Bay"
+  },
+  {
+    "name": "Piran Bay approach",
+    "lat": 45.492,
+    "lng": 13.588,
+    "durationSeconds": 25,
+    "note": "Entering Piran Bay"
   },
   {
     "name": "Morska oaza Piran",
@@ -49,16 +70,23 @@
     "note": "DANGER ZONE - YouSea artificial reef"
   },
   {
-    "name": "Posidonia meadows",
-    "lat": 45.502,
+    "name": "Posidonia meadows (off Fiesa)",
+    "lat": 45.491,
     "lng": 13.562,
     "durationSeconds": 35,
     "note": "DANGER ZONE - seagrass beds"
   },
   {
-    "name": "Piran marina",
-    "lat": 45.5278,
-    "lng": 13.5678,
+    "name": "Piran Bay north",
+    "lat": 45.498,
+    "lng": 13.578,
+    "durationSeconds": 25,
+    "note": "Leaving danger zones"
+  },
+  {
+    "name": "Marina Portoroz",
+    "lat": 45.50597,
+    "lng": 13.5974,
     "durationSeconds": 30,
     "note": "Safe mooring area"
   }

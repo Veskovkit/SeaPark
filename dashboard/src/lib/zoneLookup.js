@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf';
-import { zones } from './zones';
+import { zones, toTurfFeature } from './zones';
 
 const ZONE_PRIORITY = { danger: 0, restricted: 1, safe: 2 };
 
@@ -23,7 +23,8 @@ export function findZoneAt(lat, lng) {
 
 export function countReportsInZone(reports, feature) {
   if (!feature || !reports?.length) return 0;
-  const polygon = turf.polygon(feature.geometry.coordinates);
+  const polygon = toTurfFeature(feature);
+  if (!polygon) return 0;
   return reports.filter((r) => {
     if (r.lat == null || r.lng == null) return false;
     return turf.booleanPointInPolygon(turf.point([r.lng, r.lat]), polygon);

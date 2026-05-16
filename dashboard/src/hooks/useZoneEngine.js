@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import * as turf from '@turf/turf';
-import { zones } from '../lib/zones';
+import { zones, toTurfFeature } from '../lib/zones';
 
 const ZONE_PRIORITY = { danger: 0, restricted: 1, safe: 2 };
 
@@ -24,8 +24,8 @@ export function useZoneEngine(position) {
     let found = null;
 
     for (const feature of sortedFeatures) {
-      const polygon = turf.polygon(feature.geometry.coordinates);
-      if (turf.booleanPointInPolygon(point, polygon)) {
+      const polygon = toTurfFeature(feature);
+      if (polygon && turf.booleanPointInPolygon(point, polygon)) {
         found = feature;
         break;
       }

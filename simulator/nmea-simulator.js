@@ -5,17 +5,11 @@ const fs = require('fs');
 const path = require('path');
 const net = require('net');
 
-// Bounding boxes mirror dashboard/src/lib/zones.js polygon extents (lng/lat min-max).
-const ZONES = [
-  { id: 'piran-oasis', name: 'Morska oaza Piran', type: 'danger', minLng: 13.578, minLat: 45.484, maxLng: 13.589, maxLat: 45.492 },
-  { id: 'cladocora', name: 'Cladocora structure', type: 'danger', minLng: 13.581, minLat: 45.486, maxLng: 13.589, maxLat: 45.492 },
-  { id: 'posidonia-beds', name: 'Posidonia meadows', type: 'danger', minLng: 13.548, minLat: 45.492, maxLng: 13.578, maxLat: 45.512 },
-  { id: 'strunjan-reserve', name: 'Krajinski park Strunjan', type: 'restricted', minLng: 13.59, minLat: 45.512, maxLng: 13.626, maxLat: 45.542 },
-  { id: 'debeli-rtic', name: 'Debeli rtic', type: 'restricted', minLng: 13.632, minLat: 45.576, maxLng: 13.656, maxLat: 45.596 },
-  { id: 'croatia-mpa-gulf', name: 'Croatian MPA Gulf', type: 'restricted', minLng: 13.488, minLat: 45.458, maxLng: 13.538, maxLat: 45.488 },
-  { id: 'koper-marina', name: 'Koper Marina', type: 'safe', minLng: 13.724, minLat: 45.546, maxLng: 13.738, maxLat: 45.554 },
-  { id: 'piran-marina', name: 'Piran Marina', type: 'safe', minLng: 13.564, minLat: 45.526, maxLng: 13.574, maxLat: 45.532 },
-];
+// Synced from dashboard/src/lib/zones.js — run: node scripts/sync-simulator-zones.mjs
+const ZONE_DATA = JSON.parse(
+  fs.readFileSync(path.join(__dirname, 'zone-data.json'), 'utf8'),
+);
+const ZONE_FEATURES = ZONE_DATA.features;
 
 const TYPE_PRIORITY = { danger: 0, restricted: 1, safe: 2 };
 
@@ -116,20 +110,42 @@ function formatDisplayCoord(lat, lng) {
   return `[${Math.abs(lat).toFixed(4)}°${latDir}, ${Math.abs(lng).toFixed(4)}°${lngDir}]`;
 }
 
-function inBBox(lat, lng, zone) {
-  return (
-    lat >= zone.minLat &&
-    lat <= zone.maxLat &&
-    lng >= zone.minLng &&
-    lng <= zone.maxLng
-  );
+function getPolygonRing(feature) {
+  let ring = feature.geometry.coordinates[0];
+  while (ring.length === 1 && Array.isArray(ring[0]?.[0])) {
+    ring = ring[0];
+  }
+  return ring;
+}
+
+function pointInRing(lng, lat, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    const intersect =
+      yi > lat !== yj > lat &&
+      lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
+    if (intersect) inside = !inside;
+  }
+  return inside;
 }
 
 function getZoneAt(lat, lng) {
-  const matches = ZONES.filter((z) => inBBox(lat, lng, z));
+  const matches = ZONE_FEATURES.filter((feature) =>
+    pointInRing(lng, lat, getPolygonRing(feature)),
+  );
   if (matches.length === 0) return null;
-  matches.sort((a, b) => TYPE_PRIORITY[a.type] - TYPE_PRIORITY[b.type]);
-  return matches[0];
+  matches.sort(
+    (a, b) =>
+      TYPE_PRIORITY[a.properties.type] - TYPE_PRIORITY[b.properties.type],
+  );
+  const hit = matches[0];
+  return {
+    id: hit.properties.id,
+    name: hit.properties.name,
+    type: hit.properties.type,
+  };
 }
 
 function buildGPRMC(now, lat, lng, sog, cog) {

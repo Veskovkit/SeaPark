@@ -1,0 +1,39 @@
+{
+  "vessel": {
+    "name": "SeaPark Demo Vessel",
+    "uuid": "urn:mrn:imo:mmsi:123456789",
+    "mmsi": "123456789",
+    "port": "Koper"
+  },
+  "pipedProviders": [
+    {
+      "id": "nmea-simulator",
+      "pipeElements": [
+        {
+          "type": "providers/tcp",
+          "options": {
+            "host": "localhost",
+            "port": 10110,
+            "reconnect": true
+          }
+        },
+        {
+          "type": "providers/liner"
+        },
+        {
+          "type": "providers/nmea0183-signalk",
+          "options": {
+            "sentenceEvent": "nmea0183"
+          }
+        }
+      ]
+    }
+  ],
+  "interfaces": {
+    "ws": true,
+    "rest": true,
+    "nmea-tcp": false
+  },
+  "wsPort": 3000,
+  "port": 3001
+}

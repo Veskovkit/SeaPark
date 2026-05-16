@@ -1,122 +1,118 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect, useRef, useState } from 'react';
+import { Toaster } from 'react-hot-toast';
+import InstrumentBar from './components/InstrumentBar';
+import AlertBanner from './components/AlertBanner';
+import SidePanel from './components/SidePanel';
+import HelmMap from './components/HelmMap';
+import ZoneInfoPanel from './components/ZoneInfoPanel';
+import ReportModal from './components/ReportModal';
+import { useSignalK } from './hooks/useSignalK';
+import { useZoneEngine } from './hooks/useZoneEngine';
+import { useReports } from './hooks/useReports';
+import { playAlert } from './lib/audio';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const { position, sog, cog, connected, lastUpdate, usingBridge } =
+    useSignalK();
+  const { activeZone } = useZoneEngine(position);
+  const { reports } = useReports();
+
+  const [selectedZone, setSelectedZone] = useState(null);
+  const [reportLocation, setReportLocation] = useState(null);
+  const prevZoneType = useRef(null);
+  const [zoneCheckCount, setZoneCheckCount] = useState(0);
+
+  /* eslint-disable react-hooks/set-state-in-effect -- session counter synced to position stream */
+  useEffect(() => {
+    if (!position) return;
+    setZoneCheckCount((n) => n + 1);
+  }, [position]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  useEffect(() => {
+    if (!activeZone) {
+      prevZoneType.current = null;
+      return;
+    }
+    const type = activeZone.properties.type;
+    if (type !== prevZoneType.current) {
+      prevZoneType.current = type;
+      if (type === 'danger') playAlert('danger');
+      if (type === 'restricted') playAlert('warning');
+    }
+  }, [activeZone]);
+
+  const showAlert =
+    activeZone &&
+    (activeZone.properties.type === 'danger' ||
+      activeZone.properties.type === 'restricted');
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="helm-app">
+      <InstrumentBar
+        sog={sog}
+        cog={cog}
+        position={position}
+        connected={connected}
+        lastUpdate={lastUpdate}
+        usingBridge={usingBridge}
+      />
 
-      <div className="ticks"></div>
+      {showAlert && (
+        <AlertBanner
+          zone={activeZone.properties}
+          onReport={() => position && setReportLocation({ ...position })}
+          onViewSpecies={() => setSelectedZone(activeZone)}
+        />
+      )}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      <div className="helm-main">
+        <SidePanel
+          reports={reports}
+          connected={connected}
+          lastUpdate={lastUpdate}
+          usingBridge={usingBridge}
+          zoneCheckCount={zoneCheckCount}
+        />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        <div className="helm-map-wrap">
+          <HelmMap
+            position={position}
+            cog={cog}
+            sog={sog}
+            reports={reports}
+            onZoneClick={setSelectedZone}
+            onMapRightClick={setReportLocation}
+          />
+        </div>
+
+        {selectedZone && (
+          <ZoneInfoPanel
+            zone={selectedZone}
+            reports={reports}
+            onClose={() => setSelectedZone(null)}
+          />
+        )}
+      </div>
+
+      {reportLocation && (
+        <ReportModal
+          location={reportLocation}
+          activeZone={activeZone}
+          onClose={() => setReportLocation(null)}
+        />
+      )}
+
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: '#0a1e35',
+            color: '#e2f4ff',
+            border: '1px solid rgba(0, 212, 255, 0.2)',
+          },
+        }}
+      />
+    </div>
+  );
 }
-
-export default App

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 const HOST = import.meta.env.VITE_SIGNALK_HOST || 'localhost';
+// Signal K v2: HTTP + WebSocket share settings.port (wsPort is ignored).
 const SK_PORT = import.meta.env.VITE_SIGNALK_PORT || 3000;
 const BRIDGE_PORT = import.meta.env.VITE_NMEA_BRIDGE_PORT || 3001;
 const SIGNALK_WS = `ws://${HOST}:${SK_PORT}/signalk/v1/stream?subscribe=all`;
@@ -56,15 +57,22 @@ export function useSignalK() {
 
       msg.updates.forEach((update) => {
         update.values?.forEach(({ path, value }) => {
-          if (path === 'navigation.position') {
-            setPosition({ lat: value.latitude, lng: value.longitude });
-            setLastUpdate(new Date());
+          if (value == null) return;
+          const p = path?.replace(/^vessels\.[^.]+\./, '') ?? path;
+          if (p === 'navigation.position') {
+            const lat = value.latitude ?? value.lat;
+            const lng = value.longitude ?? value.lng;
+            if (lat != null && lng != null) {
+              setPosition({ lat, lng });
+              setLastUpdate(new Date());
+            }
           }
-          if (path === 'navigation.speedOverGround') {
-            setSog((value * 1.94384).toFixed(1));
+          if (p === 'navigation.speedOverGround') {
+            setSog((Number(value) * 1.94384).toFixed(1));
           }
-          if (path === 'navigation.courseOverGroundTrue') {
-            setCog(Math.round((value * 180) / Math.PI));
+          if (p === 'navigation.courseOverGroundTrue') {
+            const rad = Number(value);
+            setCog(Math.round((rad * 180) / Math.PI));
           }
         });
       });

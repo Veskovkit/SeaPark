@@ -3,91 +3,147 @@
     "name": "Marina Koper departure",
     "lat": 45.55022,
     "lng": 13.72782,
-    "durationSeconds": 25,
+    "durationSeconds": 20,
     "note": "Safe zone - Koper marina basin"
   },
   {
-    "name": "Koper Bay channel",
+    "name": "Basin west",
+    "lat": 45.5495,
+    "lng": 13.712,
+    "durationSeconds": 18,
+    "note": "West across Koprski Bay (stay in water)"
+  },
+  {
+    "name": "Bay mid-west",
     "lat": 45.548,
-    "lng": 13.73,
-    "durationSeconds": 30,
-    "note": "Open water - exiting Koper Bay"
+    "lng": 13.692,
+    "durationSeconds": 20,
+    "note": "West before turning south — avoids Ankaran land"
   },
   {
-    "name": "Off Zusterna",
-    "lat": 45.542,
-    "lng": 13.708,
-    "durationSeconds": 25,
-    "note": "Coastal transit"
+    "name": "Bay channel SW",
+    "lat": 45.544,
+    "lng": 13.672,
+    "durationSeconds": 20,
+    "note": "Along west side of bay"
   },
   {
-    "name": "Off Ankaran",
-    "lat": 45.562,
-    "lng": 13.678,
-    "durationSeconds": 35,
-    "note": "Offshore - Debeli rtic approaches"
+    "name": "Petelinji offshore",
+    "lat": 45.539,
+    "lng": 13.656,
+    "durationSeconds": 20,
+    "note": "Bay mouth at Petelinji (45°32′N 13°39′E)"
   },
   {
-    "name": "Off Izola",
-    "lat": 45.538,
-    "lng": 13.638,
-    "durationSeconds": 30,
-    "note": "Coastal transit"
+    "name": "Adriatic off cape",
+    "lat": 45.534,
+    "lng": 13.642,
+    "durationSeconds": 20,
+    "note": "Clear of Debeli rtic (45°35′N 13°42′E)"
   },
   {
-    "name": "Strunjan Bay entrance",
-    "lat": 45.512,
-    "lng": 13.606,
-    "durationSeconds": 35,
-    "note": "Entering Strunjan marine zone"
+    "name": "Off Ankaran shore",
+    "lat": 45.528,
+    "lng": 13.635,
+    "durationSeconds": 22,
+    "note": "Coastal fairway"
   },
   {
-    "name": "Off Strunjan",
-    "lat": 45.51,
-    "lng": 13.608,
-    "durationSeconds": 30,
-    "note": "Restricted zone - along coast"
+    "name": "Izola offshore",
+    "lat": 45.524,
+    "lng": 13.62,
+    "durationSeconds": 22,
+    "note": "West of Izola harbour"
   },
   {
-    "name": "Off Portoroz",
-    "lat": 45.506,
-    "lng": 13.598,
-    "durationSeconds": 30,
-    "note": "Coastal transit toward Piran Bay"
+    "name": "Off Izola S",
+    "lat": 45.519,
+    "lng": 13.594,
+    "durationSeconds": 18,
+    "note": "South of Izola — turning offshore"
   },
   {
-    "name": "Piran Bay approach",
-    "lat": 45.492,
-    "lng": 13.588,
-    "durationSeconds": 25,
-    "note": "Entering Piran Bay"
+    "name": "Off Simonov zaliv W",
+    "lat": 45.5155,
+    "lng": 13.581,
+    "durationSeconds": 18,
+    "note": "West of Simon Bay"
+  },
+  {
+    "name": "Strunjan cliffs W",
+    "lat": 45.5115,
+    "lng": 13.571,
+    "durationSeconds": 20,
+    "note": "West of Strunjan cliff coast"
+  },
+  {
+    "name": "Strunjan S offshore",
+    "lat": 45.5075,
+    "lng": 13.563,
+    "durationSeconds": 18,
+    "note": "South of Strunjan — in Adriatic fairway"
+  },
+  {
+    "name": "Off Fiesa W",
+    "lat": 45.5035,
+    "lng": 13.556,
+    "durationSeconds": 18,
+    "note": "West of Fiesa — clear of Piran peninsula"
+  },
+  {
+    "name": "Piran Bay mouth W",
+    "lat": 45.4995,
+    "lng": 13.557,
+    "durationSeconds": 18,
+    "note": "Bay entrance from the west"
+  },
+  {
+    "name": "Piran Bay mid W",
+    "lat": 45.4935,
+    "lng": 13.562,
+    "durationSeconds": 20,
+    "note": "In bay — west of Piran old town"
   },
   {
     "name": "Morska oaza Piran",
     "lat": 45.4882,
     "lng": 13.5836,
-    "durationSeconds": 45,
+    "durationSeconds": 40,
     "note": "DANGER ZONE - YouSea artificial reef"
   },
   {
+    "name": "West of reef",
+    "lat": 45.4865,
+    "lng": 13.574,
+    "durationSeconds": 18,
+    "note": "Piran Bay channel"
+  },
+  {
     "name": "Posidonia meadows (off Fiesa)",
-    "lat": 45.491,
-    "lng": 13.562,
-    "durationSeconds": 35,
+    "lat": 45.4895,
+    "lng": 13.565,
+    "durationSeconds": 28,
     "note": "DANGER ZONE - seagrass beds"
   },
   {
-    "name": "Piran Bay north",
-    "lat": 45.498,
-    "lng": 13.578,
-    "durationSeconds": 25,
-    "note": "Leaving danger zones"
+    "name": "Piran Bay north W",
+    "lat": 45.4945,
+    "lng": 13.568,
+    "durationSeconds": 18,
+    "note": "North bay — west of peninsula"
+  },
+  {
+    "name": "Bernardin approach",
+    "lat": 45.5005,
+    "lng": 13.582,
+    "durationSeconds": 18,
+    "note": "Bernardin — in Piran Bay water"
   },
   {
     "name": "Marina Portoroz",
     "lat": 45.50597,
     "lng": 13.5974,
-    "durationSeconds": 30,
+    "durationSeconds": 22,
     "note": "Safe mooring area"
   }
 ]

@@ -5,7 +5,8 @@
   "main": "nmea-simulator.js",
   "scripts": {
     "start": "node nmea-simulator.js",
-    "demo": "node nmea-simulator.js --route routes/piran-demo.json --speed 2",
+    "demo": "node nmea-simulator.js --route routes/piran-demo-track.json --speed 2",
+    "build-track": "node scripts/build-demo-track.mjs",
     "bridge": "node nmea-bridge.js"
   },
   "dependencies": {

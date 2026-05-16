@@ -4,6 +4,11 @@
 const fs = require('fs');
 const path = require('path');
 const net = require('net');
+const {
+  loadRoute,
+  createTrackFollower,
+  createLegacyFollower,
+} = require('./lib/track-route');
 
 // Synced from dashboard/src/lib/zones.js — run: node scripts/sync-simulator-zones.mjs
 const ZONE_DATA = JSON.parse(
@@ -15,8 +20,8 @@ const TYPE_PRIORITY = { danger: 0, restricted: 1, safe: 2 };
 
 function parseArgs(argv) {
   const opts = {
-    route: path.join(__dirname, 'routes', 'piran-demo.json'),
-    speed: 1,
+    route: path.join(__dirname, 'routes', 'piran-demo-track.json'),
+    speed: 10,
     port: 10110,
   };
 
@@ -27,22 +32,13 @@ function parseArgs(argv) {
         ? argv[i]
         : path.resolve(process.cwd(), argv[i]);
     } else if (arg === '--speed' && argv[i + 1]) {
-      opts.speed = Math.max(0.1, parseFloat(argv[++i]));
+      opts.speed = Math.max(10, parseFloat(argv[++i]));
     } else if (arg === '--port' && argv[i + 1]) {
       opts.port = parseInt(argv[++i], 10);
     }
   }
 
   return opts;
-}
-
-function loadWaypoints(routePath) {
-  const raw = fs.readFileSync(routePath, 'utf8');
-  const waypoints = JSON.parse(raw);
-  if (!Array.isArray(waypoints) || waypoints.length < 2) {
-    throw new Error('Route must be a JSON array with at least 2 waypoints');
-  }
-  return waypoints;
 }
 
 function nmeaChecksum(body) {
@@ -76,19 +72,6 @@ function decimalToNmea(decimal, isLat) {
       ? 'E'
       : 'W';
   return { value, dir };
-}
-
-function haversineNm(lat1, lng1, lat2, lng2) {
-  const R = 3440.065;
-  const toRad = (d) => (d * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(a));
 }
 
 function bearingDeg(lat1, lng1, lat2, lng2) {
@@ -187,7 +170,7 @@ function logZoneTransition(prevZone, nextZone) {
   }
 }
 
-function runSimulator(opts, waypoints) {
+function runSimulator(opts, route) {
   const clients = new Set();
   const server = net.createServer((socket) => {
     clients.add(socket);
@@ -200,10 +183,17 @@ function runSimulator(opts, waypoints) {
   });
 
   const routeLabel = path.basename(opts.route, '.json');
+  const pointCount =
+    route.mode === 'track' ? route.points.length : route.waypoints.length;
+
   console.log('\uD83D\uDEF5\uFE0F  SeaPark NMEA Simulator');
-  console.log(
-    `   Route: Gulf of Piran demo (${waypoints.length} waypoints) \u2014 ${routeLabel}`,
-  );
+  console.log(`   Route: ${route.label} (${pointCount} points) \u2014 ${routeLabel}`);
+  if (route.mode === 'track') {
+    console.log(`   Mode: dense zone track @ ${route.sogKnots} kn`);
+    if (route.dwells?.length) {
+      console.log(`   Dwell stops: ${route.dwells.map((d) => d.name).join(', ')}`);
+    }
+  }
   console.log(`   Speed: ${opts.speed}x`);
   console.log(`   TCP: listening on port ${opts.port}`);
   console.log('   Waiting for Signal K to connect...');
@@ -211,11 +201,21 @@ function runSimulator(opts, waypoints) {
 
   server.listen(opts.port);
 
-  let segmentIndex = 0;
-  let segmentElapsedMs = 0;
-  let prevZone = null;
-  let lastWaypointLogged = -1;
+  const follower =
+    route.mode === 'track'
+      ? createTrackFollower(route, {
+          onDwell: (d) =>
+            console.log(`\u2693 Dwelling at ${d.name} (${d.seconds}s)`),
+          onTurn: (dir) =>
+            console.log(
+              dir === 'reverse'
+                ? '\u21A9 Reversing along track'
+                : '\u21AA Forward along track',
+            ),
+        })
+      : createLegacyFollower(route.waypoints);
 
+  let prevZone = null;
   const tickMs = 1000 / opts.speed;
 
   function broadcast(line) {
@@ -225,22 +225,8 @@ function runSimulator(opts, waypoints) {
     }
   }
 
-  function advanceRoute() {
-    const from = waypoints[segmentIndex];
-    const to = waypoints[(segmentIndex + 1) % waypoints.length];
-    const durationMs = from.durationSeconds * 1000;
-    const t = Math.min(segmentElapsedMs / durationMs, 1);
-
-    const lat = from.lat + (to.lat - from.lat) * t;
-    const lng = from.lng + (to.lng - from.lng) * t;
-
-    const distNm = haversineNm(from.lat, from.lng, to.lat, to.lng);
-    const sog =
-      from.durationSeconds > 0
-        ? distNm / (from.durationSeconds / 3600)
-        : 0;
-    const cog = bearingDeg(lat, lng, to.lat, to.lng);
-
+  function tick() {
+    const { lat, lng, sog, cog } = follower.step(tickMs, opts.speed);
     const now = new Date();
     broadcast(buildGPRMC(now, lat, lng, sog, cog));
     broadcast(buildGPGGA(now, lat, lng));
@@ -256,43 +242,24 @@ function runSimulator(opts, waypoints) {
       }
       prevZone = zone;
     }
-
-    if (t >= 1) {
-      segmentIndex = (segmentIndex + 1) % waypoints.length;
-      segmentElapsedMs = 0;
-
-      const wpIdx = segmentIndex;
-      if (wpIdx !== lastWaypointLogged) {
-        lastWaypointLogged = wpIdx;
-        const wp = waypoints[wpIdx];
-        console.log(
-          `\u2693 Waypoint ${wpIdx + 1}/${waypoints.length}: "${wp.name}" ${formatDisplayCoord(wp.lat, wp.lng)}`,
-        );
-        if (wp.note) console.log(`   ${wp.note}`);
-      }
-    } else {
-      segmentElapsedMs += tickMs;
-    }
   }
 
-  console.log(
-    `\u2693 Waypoint 1/${waypoints.length}: "${waypoints[0].name}" ${formatDisplayCoord(waypoints[0].lat, waypoints[0].lng)}`,
-  );
-  if (waypoints[0].note) console.log(`   ${waypoints[0].note}`);
-  lastWaypointLogged = 0;
+  const start =
+    route.mode === 'track' ? route.points[0] : route.waypoints[0];
+  console.log(`\u2693 Start: ${formatDisplayCoord(start.lat, start.lng)}`);
 
-  const initialZone = getZoneAt(waypoints[0].lat, waypoints[0].lng);
+  const initialZone = getZoneAt(start.lat, start.lng);
   if (initialZone) logZoneTransition(null, initialZone);
   prevZone = initialZone;
 
-  advanceRoute();
-  setInterval(advanceRoute, tickMs);
+  tick();
+  setInterval(tick, tickMs);
 }
 
 function main() {
   const opts = parseArgs(process.argv);
-  const waypoints = loadWaypoints(opts.route);
-  runSimulator(opts, waypoints);
+  const route = loadRoute(opts.route);
+  runSimulator(opts, route);
 }
 
 if (require.main === module) {
@@ -306,6 +273,5 @@ module.exports = {
   buildGPGGA,
   verifyChecksum,
   getZoneAt,
-  haversineNm,
   bearingDeg,
 };

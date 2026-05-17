@@ -146,7 +146,7 @@ const track = {
   name: 'Gulf of Piran demo track',
   description:
     'Dense fairway through Navigator restricted areas and YouSea danger zones. Regenerate with node scripts/build-demo-track.mjs',
-  sogKnots: 4.5,
+  sogKnots: 25,
   stepMeters: 65,
   dwells: [
     {

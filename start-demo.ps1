@@ -18,7 +18,7 @@ function Stop-DemoJobs {
 }
 
 try {
-  Write-Host "Starting NMEA simulator (50x speed)..."
+  Write-Host "Starting NMEA simulator (25 kn)..."
   $jobs += Start-Job -ScriptBlock {
     Set-Location $using:Root
     Set-Location simulator

@@ -32,7 +32,7 @@ function parseArgs(argv) {
         ? argv[i]
         : path.resolve(process.cwd(), argv[i]);
     } else if (arg === '--speed' && argv[i + 1]) {
-      opts.speed = Math.max(10, parseFloat(argv[++i]));
+      opts.speed = Math.max(0.25, parseFloat(argv[++i]));
     } else if (arg === '--port' && argv[i + 1]) {
       opts.port = parseInt(argv[++i], 10);
     }
@@ -193,6 +193,11 @@ function runSimulator(opts, route) {
     if (route.dwells?.length) {
       console.log(`   Dwell stops: ${route.dwells.map((d) => d.name).join(', ')}`);
     }
+    if (route.turnaround) {
+      console.log(
+        `   Turnaround: ${route.turnaround.lat.toFixed(5)}°N ${route.turnaround.lng.toFixed(5)}°E → south → U-turn → reverse → stop`,
+      );
+    }
   }
   console.log(`   Speed: ${opts.speed}x`);
   console.log(`   TCP: listening on port ${opts.port}`);
@@ -206,12 +211,16 @@ function runSimulator(opts, route) {
       ? createTrackFollower(route, {
           onDwell: (d) =>
             console.log(`\u2693 Dwelling at ${d.name} (${d.seconds}s)`),
-          onTurn: (dir) =>
-            console.log(
-              dir === 'reverse'
-                ? '\u21A9 Reversing along track'
-                : '\u21AA Forward along track',
-            ),
+          onTurn: (dir) => {
+            const msgs = {
+              south: '\u2B07 South leg before U-turn',
+              uturn: '\u21BA U-turn offshore (west)',
+              reverse: '\u21A9 Reversing along outbound track',
+              stopped: '\u2693 Back at marina — stopped',
+              forward: '\u21AA Forward along track',
+            };
+            console.log(msgs[dir] ?? dir);
+          },
         })
       : createLegacyFollower(route.waypoints);
 

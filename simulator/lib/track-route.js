@@ -75,6 +75,7 @@ function loadRoute(routePath) {
       points,
       sogKnots: data.sogKnots ?? 4.5,
       dwells: data.dwells ?? [],
+      turnaround: data.turnaround ?? null,
       label: data.name ?? 'demo track',
     };
   }
@@ -115,63 +116,291 @@ function interpolateAt(points, cumDist, distanceM) {
   };
 }
 
+function clampAngleDelta(deg) {
+  let d = ((deg + 540) % 360) - 180;
+  return d;
+}
+
+function applyTurnRate(rawCog, lastCog, maxDegPerTick) {
+  const delta = clampAngleDelta(rawCog - lastCog);
+  const limited = Math.max(-maxDegPerTick, Math.min(maxDegPerTick, delta));
+  return (lastCog + limited + 360) % 360;
+}
+
+function closestDistanceOnTrack(points, cumDist, lat, lng) {
+  let bestSep = Infinity;
+  let bestDistM = 0;
+  for (let i = 0; i < points.length; i += 1) {
+    const sep = haversineM(lat, lng, points[i].lat, points[i].lng);
+    if (sep < bestSep) {
+      bestSep = sep;
+      bestDistM = cumDist[i];
+    }
+  }
+  return { distanceM: bestDistM, separationM: bestSep };
+}
+
+function metersPerDegLat() {
+  return 111000;
+}
+
+function metersPerDegLng(lat) {
+  return 111000 * Math.cos((lat * Math.PI) / 180);
+}
+
+function offsetMeters(lat, lng, northM, eastM) {
+  return {
+    lat: lat + northM / metersPerDegLat(),
+    lng: lng + eastM / metersPerDegLng(lat),
+  };
+}
+
+function moveAlongCog(lat, lng, cogDeg, distanceM) {
+  const cogRad = (cogDeg * Math.PI) / 180;
+  return offsetMeters(
+    lat,
+    lng,
+    Math.cos(cogRad) * distanceM,
+    Math.sin(cogRad) * distanceM,
+  );
+}
+
 function createTrackFollower(track, callbacks = {}) {
-  const { points, sogKnots, dwells } = track;
+  const { points, sogKnots, dwells, turnaround } = track;
   const cumDist = buildCumulativeDistances(points);
   const totalM = cumDist[cumDist.length - 1];
+  const turnaroundDistM = turnaround
+    ? closestDistanceOnTrack(points, cumDist, turnaround.lat, turnaround.lng)
+        .distanceM
+    : null;
+
   let distanceM = 0;
   let direction = 1;
   let dwellUntil = 0;
   const dwellTriggered = new Set();
+  let lastCog = null;
+  let phase = turnaround ? 'forward' : 'forward';
+  let turnDistM = turnaroundDistM;
+  let southEnd = null;
+  let southProgressM = 0;
+  let turnPos = null;
+  let uturnRotDeg = 0;
+  let offPos = null;
 
-  function step(deltaMs, speedMult = 1) {
-    const pos = interpolateAt(points, cumDist, distanceM);
+  function speedMps(speedMult, scale = 1) {
+    return ((sogKnots * 0.514444) / 1000) * speedMult * scale;
+  }
 
-    if (dwellUntil > Date.now()) {
-      return { lat: pos.lat, lng: pos.lng, sog: 0, cog: 0 };
-    }
+  function beginSouthLeg(pos) {
+    phase = 'south';
+    southEnd = { lat: pos.lat, lng: pos.lng };
+    southProgressM = 0;
+    turnPos = null;
+    uturnRotDeg = 0;
+    offPos = { lat: pos.lat, lng: pos.lng };
+    lastCog = 180;
+    callbacks.onTurn?.('south');
+  }
 
-    for (const d of dwells) {
-      const key = d.name ?? `${d.lat},${d.lng}`;
-      if (dwellTriggered.has(key)) continue;
-      if (haversineM(pos.lat, pos.lng, d.lat, d.lng) <= (d.radiusM ?? 100)) {
-        dwellTriggered.add(key);
-        dwellUntil = Date.now() + (d.seconds ?? 30) * 1000;
-        callbacks.onDwell?.(d);
-        return { lat: pos.lat, lng: pos.lng, sog: 0, cog: 0 };
-      }
-    }
-
-    distanceM += direction * ((sogKnots * 0.514444) / 1000) * speedMult * deltaMs;
-
-    if (distanceM >= totalM) {
-      distanceM = totalM;
-      direction = -1;
-      dwellTriggered.clear();
-      callbacks.onTurn?.('reverse');
-    } else if (distanceM <= 0) {
-      distanceM = 0;
-      direction = 1;
-      dwellTriggered.clear();
-      callbacks.onTurn?.('forward');
-    }
-
-    const cur = interpolateAt(points, cumDist, distanceM);
+  function trackTangentCog(dist, dir, speedMult, deltaMs) {
+    const tangentM = 30;
+    const pos = interpolateAt(points, cumDist, dist);
+    const behind = interpolateAt(
+      points,
+      cumDist,
+      Math.max(0, Math.min(totalM, dist - dir * tangentM)),
+    );
     const ahead = interpolateAt(
       points,
       cumDist,
-      Math.min(totalM, Math.max(0, distanceM + direction * 40)),
+      Math.max(0, Math.min(totalM, dist + dir * tangentM)),
     );
+    const rawCog = bearingDeg(behind.lat, behind.lng, ahead.lat, ahead.lng);
+    const dtSec = deltaMs / 1000;
+    let maxTurn = 22 * dtSec * speedMult;
+    if (lastCog != null) {
+      const lag = Math.abs(clampAngleDelta(rawCog - lastCog));
+      if (lag > 45) maxTurn = Math.max(maxTurn, lag * 0.35);
+    }
+    if (lastCog == null) lastCog = rawCog;
+    else lastCog = applyTurnRate(rawCog, lastCog, Math.max(6, maxTurn));
+    return { pos, cog: lastCog };
+  }
+
+  function step(deltaMs, speedMult = 1) {
+    if (phase === 'stopped') {
+      const start = points[0];
+      return {
+        lat: start.lat,
+        lng: start.lng,
+        sog: 0,
+        cog: lastCog ?? 0,
+        phase,
+      };
+    }
+
+    if (phase === 'south' || phase === 'uturn') {
+      const southM = turnaround.southM ?? 250;
+      const turnRateMult = Math.min(Math.sqrt(speedMult) * 2.2, 14);
+      const turnRate =
+        (turnaround.turnRateDegPerSec ?? 4) *
+        (deltaMs / 1000) *
+        turnRateMult;
+      const uturnDegrees = turnaround.uturnDegrees ?? 275;
+      const turnSog =
+        sogKnots * speedMult * (turnaround.turnSpeedRatio ?? 0.45);
+
+      if (phase === 'south') {
+        const stepM = speedMps(speedMult) * deltaMs;
+        southProgressM = Math.min(southM, southProgressM + stepM);
+        offPos = offsetMeters(southEnd.lat, southEnd.lng, -southProgressM, 0);
+        lastCog = 180;
+        if (southProgressM >= southM) {
+          phase = 'uturn';
+          turnPos = { lat: offPos.lat, lng: offPos.lng };
+          uturnRotDeg = 0;
+          lastCog = 180;
+          callbacks.onTurn?.('uturn');
+        }
+        return {
+          lat: offPos.lat,
+          lng: offPos.lng,
+          sog: sogKnots * speedMult * 0.8,
+          cog: lastCog,
+          phase,
+        };
+      }
+
+      const stepM = (turnSog * 0.514444 * deltaMs) / 1000;
+      uturnRotDeg = Math.min(uturnDegrees, uturnRotDeg + turnRate);
+      lastCog = (180 + uturnRotDeg) % 360;
+      turnPos = moveAlongCog(turnPos.lat, turnPos.lng, lastCog, stepM);
+      offPos = turnPos;
+
+      if (uturnRotDeg >= uturnDegrees - 2) {
+        phase = 'reverse';
+        direction = -1;
+        distanceM = turnDistM;
+        turnPos = null;
+        callbacks.onTurn?.('reverse');
+        const pos = interpolateAt(points, cumDist, distanceM);
+        return {
+          lat: pos.lat,
+          lng: pos.lng,
+          sog: sogKnots * speedMult,
+          cog: lastCog,
+          phase,
+        };
+      }
+
+      return {
+        lat: offPos.lat,
+        lng: offPos.lng,
+        sog: turnSog,
+        cog: lastCog,
+        phase,
+      };
+    }
+
+    const atDist = interpolateAt(points, cumDist, distanceM);
+
+    if (dwellUntil > Date.now()) {
+      return {
+        lat: atDist.lat,
+        lng: atDist.lng,
+        sog: 0,
+        cog: lastCog ?? 0,
+        phase,
+      };
+    }
+
+    if (phase === 'forward') {
+      for (const d of dwells) {
+        const key = d.name ?? `${d.lat},${d.lng}`;
+        if (dwellTriggered.has(key)) continue;
+        if (
+          haversineM(atDist.lat, atDist.lng, d.lat, d.lng) <= (d.radiusM ?? 100)
+        ) {
+          dwellTriggered.add(key);
+          dwellUntil = Date.now() + (d.seconds ?? 30) * 1000;
+          callbacks.onDwell?.(d);
+          return {
+            lat: atDist.lat,
+            lng: atDist.lng,
+            sog: 0,
+            cog: lastCog ?? 0,
+            phase,
+          };
+        }
+      }
+    }
+
+    distanceM += direction * speedMps(speedMult) * deltaMs;
+
+    if (turnaround && phase === 'forward' && distanceM >= turnDistM) {
+      distanceM = turnDistM;
+      const pos = interpolateAt(points, cumDist, distanceM);
+      beginSouthLeg(pos);
+      return {
+        lat: pos.lat,
+        lng: pos.lng,
+        sog: sogKnots * speedMult,
+        cog: lastCog,
+        phase: 'south',
+      };
+    }
+
+    if (turnaround && phase === 'reverse') {
+      if (distanceM <= 0) {
+        distanceM = 0;
+        phase = 'stopped';
+        const start = points[0];
+        callbacks.onTurn?.('stopped');
+        return {
+          lat: start.lat,
+          lng: start.lng,
+          sog: 0,
+          cog: lastCog ?? 0,
+          phase,
+        };
+      }
+    } else if (!turnaround) {
+      if (distanceM >= totalM) {
+        distanceM = totalM;
+        direction = -1;
+        dwellTriggered.clear();
+        callbacks.onTurn?.('reverse');
+      } else if (distanceM <= 0) {
+        distanceM = 0;
+        direction = 1;
+        dwellTriggered.clear();
+        callbacks.onTurn?.('forward');
+      }
+    }
+
+    const { pos, cog } = trackTangentCog(
+      distanceM,
+      direction,
+      speedMult,
+      deltaMs,
+    );
+    lastCog = cog;
 
     return {
-      lat: cur.lat,
-      lng: cur.lng,
+      lat: pos.lat,
+      lng: pos.lng,
       sog: sogKnots * speedMult,
-      cog: bearingDeg(cur.lat, cur.lng, ahead.lat, ahead.lng),
+      cog: lastCog,
+      phase,
     };
   }
 
-  return { step, pointCount: points.length, totalKm: totalM / 1000 };
+  return {
+    step,
+    pointCount: points.length,
+    totalKm: totalM / 1000,
+    hasTurnaround: Boolean(turnaround),
+  };
 }
 
 function createLegacyFollower(waypoints) {

@@ -89,27 +89,51 @@ function getZoneAt(lat, lng) {
   return null;
 }
 
-// Ordered demo path: marina → bay → restricted zones along coast → danger reef → Portorož
+// Marina → Izola: smooth SW curve (slight north bias near Izola, no sharp L-turns)
 const anchors = [
   zonePoint('koper-marina'),
-  { lat: 45.5492, lng: 13.714, id: 'bay-1' },
-  { lat: 45.5465, lng: 13.695, id: 'bay-2' },
-  { lat: 45.5425, lng: 13.678, id: 'bay-3' },
-  { lat: 45.5385, lng: 13.662, id: 'bay-4' },
-  zonePoint('aisvn43'),
-  zonePoint('aisvn39'),
-  zonePoint('aisvn17-a'),
-  zonePoint('aisvn17'),
-  zonePoint('aisvn35'),
-  zonePoint('aisvn44'),
-  zonePoint('piran-oasis'),
-  zonePoint('aisvn34'),
-  zonePoint('cladocora'),
-  { lat: 45.498, lng: 13.592, id: 'bernardin' },
-  zonePoint('piran-marina'),
+  { lat: 45.5506, lng: 13.718, id: 'bay-1' },
+  { lat: 45.5498, lng: 13.708, id: 'bay-2' },
+  { lat: 45.5493, lng: 13.698, id: 'bay-3' },
+  { lat: 45.5488, lng: 13.691, id: 'bay-4' },
+  { lat: 45.5480, lng: 13.684, id: 'bay-5' },
+  { lat: 45.5475, lng: 13.677, id: 'izola-1' },
+  { lat: 45.5470, lng: 13.671, id: 'izola-2' },
+  { lat: 45.5462, lng: 13.665, id: 'izola-3' },
+  { lat: 45.5445, lng: 13.652, id: 'coast-1' },
+  { lat: 45.5425, lng: 13.642, id: 'coast-2' },
+  { lat: 45.5410, lng: 13.635, id: 'coast-3' },
+  { lat: 45.5395, lng: 13.629, id: 'coast-4' },
+  { lat: 45.5385, lng: 13.627, id: 'cap-aisvn43' },
+  { lat: 45.5383, lng: 13.6265, id: 'cap-pass' },
+  { lat: 45.5382, lng: 13.6252, id: 'cap-west' },
+  { lat: 45.5395, lng: 13.6250, id: 'north-1' },
+  { lat: 45.5410, lng: 13.6235, id: 'north-2' },
+  { lat: 45.5418, lng: 13.6200, id: 'north-3' },
+  { lat: 45.5405, lng: 13.6195, id: 'north-4' },
+  { lat: 45.5405, lng: 13.6175, id: 'west-high-1' },
+  { lat: 45.5405, lng: 13.6155, id: 'west-high-2' },
+  { lat: 45.5405, lng: 13.6135, id: 'west-high-3' },
+  { lat: 45.5405, lng: 13.6115, id: 'west-high-4' },
+  { lat: 45.5395, lng: 13.6105, id: 'west-mid' },
+  { lat: 45.5390, lng: 13.61017, id: 'west-hazard' },
+  { lat: 45.5390, lng: 13.6070, id: 'west-hold-1' },
+  { lat: 45.5390, lng: 13.6040, id: 'west-hold-2' },
+  { lat: 45.5390, lng: 13.6010, id: 'west-hold-3' },
+  { lat: 45.5390, lng: 13.59983, id: 'turnaround-end' },
 ];
 
-const coordinates = resampleAnchors(anchors, 90);
+const turnaround = {
+  lat: 45 + 32.34 / 60,
+  lng: 13 + 35.99 / 60,
+  radiusM: 90,
+  southM: 260,
+  turnRateDegPerSec: 4.5,
+  turnSpeedRatio: 0.42,
+  uturnDegrees: 275,
+};
+
+const coordinates = resampleAnchors(anchors, 65);
 
 // Validate zone coverage
 const zoneHits = new Set();
@@ -123,7 +147,7 @@ const track = {
   description:
     'Dense fairway through Navigator restricted areas and YouSea danger zones. Regenerate with node scripts/build-demo-track.mjs',
   sogKnots: 4.5,
-  stepMeters: 90,
+  stepMeters: 65,
   dwells: [
     {
       lat: zonePoint('piran-oasis').lat,
@@ -141,6 +165,7 @@ const track = {
     },
   ],
   coordinates,
+  turnaround,
   zoneIdsOnTrack: [...zoneHits].sort(),
 };
 
